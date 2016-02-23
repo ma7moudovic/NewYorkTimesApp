@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sections_array">
+        <item>home</item>
+        <item>world</item>
+        <item>national</item>
+        <item>politics</item>
+        <item>nyregion</item>
+        <item>business</item>
+        <item>opinion</item>
+        <item>technology</item>
+        <item>science</item>
+        <item>health</item>
+        <item>sports</item>
+        <item>arts</item>
+        <item>fashion</item>
+        <item>dining</item>
+        <item>travel</item>
+        <item>magazine</item>
+        <item>realestate</item>
+    </string-array>
+</resources>
