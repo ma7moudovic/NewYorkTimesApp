@@ -36,24 +36,26 @@ public class ListFragment extends Fragment {
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
-
+    ArrayList<item> data_ret ;
 
     public ListFragment() {
         // Required empty public constructor
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View rootView =  inflater.inflate(R.layout.fragment_list, container, false);
-
+        data_ret= new ArrayList<>();
         recyclerView = (RecyclerView) rootView.findViewById(R.id.main_recycler_view);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new RecyclerAdapter(getActivity(),getCart(getActivity()));
+//        adapter = new RecyclerAdapter(getActivity(),getCart(getActivity()));
+        adapter = new RecyclerAdapter(getActivity(),data_ret);
+
         recyclerView.setAdapter(adapter);
         return rootView ;
     }
@@ -76,5 +78,16 @@ public class ListFragment extends Fragment {
         } else
             return null;
         return (ArrayList<item>) favorites;
+    }
+
+    public void setData(ArrayList<item> data){
+        data_ret =data ;
+        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        adapter.notifyDataSetChanged();
     }
 }

@@ -42,6 +42,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    GridFragment gridFragment ;
+    ListFragment listFragment ;
+
     public static final String PREFS_NAME = "PRODUCT_APP";
     public static final String OFF_ITEMS = "Offline_Items";
     SharedPreferences settings;
@@ -53,7 +56,9 @@ public class MainActivity extends AppCompatActivity {
     String section_selected ;
     private ArrayList<item> Items = null;
 
+    Bundle bundle ;
 
+    ViewPagerAdapter viewPagerAdapter ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,10 +66,13 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        bundle = new Bundle();
+
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
 
         tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
 
         sp = (Spinner) findViewById(R.id.sections);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -80,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 section_selected = sp.getSelectedItem().toString() ;
                 new FetchFeeds(MainActivity.this).execute();
-
             }
 
             @Override
@@ -113,11 +120,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new ListFragment(), "List");
-        adapter.addFragment(new GridFragment(), "Grid");
-//        adapter.addFragment(new ThreeFragment(), "THREE");
-        viewPager.setAdapter(adapter);
+        viewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
+
+        listFragment = new ListFragment();
+        gridFragment = new GridFragment();
+
+        viewPagerAdapter.addFragment(listFragment, "List");
+        viewPagerAdapter.addFragment(gridFragment, "Grid");
+        viewPager.setAdapter(viewPagerAdapter);
     }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -261,21 +271,19 @@ public class MainActivity extends AppCompatActivity {
                 Items = new ArrayList<>();
                 Items.addAll(newsFeed);
 
-                settings = context.getSharedPreferences(PREFS_NAME,
-                        Context.MODE_PRIVATE);
-                editor = settings.edit();
+//                settings = context.getSharedPreferences(PREFS_NAME,
+//                        Context.MODE_PRIVATE);
+//                editor = settings.edit();
+//                Gson gson = new Gson();
+//                String jsonFeedsOffline = gson.toJson(Items);
+//                editor.putString(OFF_ITEMS, jsonFeedsOffline);
+//                editor.commit();
 
-                Gson gson = new Gson();
-                String jsonFeedsOffline = gson.toJson(Items);
-
-                editor.putString(OFF_ITEMS, jsonFeedsOffline);
-                editor.commit();
-                setupViewPager(viewPager);
-                tabLayout.setupWithViewPager(viewPager);
+                listFragment.setData(Items);
+                gridFragment.setData(Items);
 
             }else{
                 Toast.makeText(context, "can't fetch news Feed ", Toast.LENGTH_SHORT).show();
-
             }
             pDialog.hide();
         }

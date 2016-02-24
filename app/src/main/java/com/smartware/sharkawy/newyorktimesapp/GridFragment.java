@@ -29,6 +29,8 @@ public class GridFragment extends Fragment {
     SharedPreferences settings;
     SharedPreferences.Editor editor;
 
+    ArrayList<item> data_ret ;
+
     GridView gridView ;
     GridAdapter gridAdapter ;
     public GridFragment() {
@@ -41,11 +43,11 @@ public class GridFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_grid, container, false);
+        data_ret = new ArrayList<>();
 
         gridView = (GridView) rootView.findViewById(R.id.gridview_);
-        gridAdapter = new GridAdapter(getActivity(),getCart(getActivity()));
+        gridAdapter = new GridAdapter(getActivity(),data_ret);
         gridView.setAdapter(gridAdapter);
-
         return rootView ;
     }
     public ArrayList<item> getCart(Context context) {
@@ -66,5 +68,15 @@ public class GridFragment extends Fragment {
         } else
             return null;
         return (ArrayList<item>) favorites;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        gridAdapter.notifyDataSetChanged();
+    }
+    public void setData(ArrayList<item> data){
+        data_ret =data ;
+        gridAdapter.notifyDataSetChanged();
     }
 }

@@ -92,7 +92,7 @@ public class GridAdapter extends BaseAdapter {
 
         viewHolder = (ViewHolder) convertView.getTag();
 
-        Picasso.with(getmContext()).load(item.getImage_url()).into(viewHolder.imageView);
+        Picasso.with(getmContext()).load(item.getImage_url()).error(R.mipmap.ic_launcher).into(viewHolder.imageView);
         viewHolder.titleView.setText(item.getTitle());
         try {
             viewHolder.publish_date.setText(FormatDate(item.getPublished_date()));
