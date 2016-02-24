@@ -76,7 +76,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         String pic_url = pObjects.get(position).getImage_url();
 //        holder.textView.setText(pObjects.get(position).getTitle());
 
-        Picasso.with(getpContext()).load(pic_url).into(holder.imageView);
+        Picasso.with(getpContext()).load(pic_url).error(R.mipmap.loader).into(holder.imageView);
 //        holder.imageView.setImageResource(pics[position]);
         holder.titleView.setText(pObjects.get(position).getTitle());
         try {
@@ -84,7 +84,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

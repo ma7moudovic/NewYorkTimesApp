@@ -81,7 +81,8 @@ public class ListFragment extends Fragment {
     }
 
     public void setData(ArrayList<item> data){
-        data_ret =data ;
+        data_ret.clear();
+        data_ret.addAll(data) ;
         adapter.notifyDataSetChanged();
     }
 

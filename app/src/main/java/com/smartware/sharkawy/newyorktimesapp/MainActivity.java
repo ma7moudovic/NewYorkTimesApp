@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.annotation.UiThread;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -39,6 +41,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -56,9 +59,9 @@ public class MainActivity extends AppCompatActivity {
     String section_selected ;
     private ArrayList<item> Items = null;
 
-    Bundle bundle ;
-
     ViewPagerAdapter viewPagerAdapter ;
+
+    CoordinatorLayout coordinatorLayout ;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,8 +69,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        bundle = new Bundle();
-
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
 
@@ -77,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
         sp = (Spinner) findViewById(R.id.sections);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.sections_array, android.R.layout.simple_list_item_1);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         sp.setAdapter(adapter);
         section_selected = sp.getSelectedItem().toString() ;
         FetchFeeds req = new FetchFeeds(this);
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -169,18 +169,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-
             super.onPreExecute();
-            try {
-
-                pDialog = new ProgressDialog(context);
-
-            }catch (Exception e){
-                Log.e(LOG_TAG, e.toString());
-                e.printStackTrace();
-            }
-            pDialog.setMessage("Loading...");
-
+//            pDialog = ProgressDialog.show(context,"","Loading..",true);
+            pDialog = new ProgressDialog(context);
+            pDialog.setMessage("Loading..");
             pDialog.show();
         }
 
@@ -202,10 +194,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected List<item> doInBackground(String... params) {
-
-//            if (params.length == 0) {
-//                return null;
-//            }
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -265,27 +253,60 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(List<item> newsFeed) {
-            pDialog.dismiss();
+
+            if (pDialog.isShowing()) {
+                pDialog.dismiss();
+            }
             if (newsFeed != null) {
 
                 Items = new ArrayList<>();
                 Items.addAll(newsFeed);
 
-//                settings = context.getSharedPreferences(PREFS_NAME,
-//                        Context.MODE_PRIVATE);
-//                editor = settings.edit();
-//                Gson gson = new Gson();
-//                String jsonFeedsOffline = gson.toJson(Items);
-//                editor.putString(OFF_ITEMS, jsonFeedsOffline);
-//                editor.commit();
 
                 listFragment.setData(Items);
                 gridFragment.setData(Items);
+                saveToShared();
 
             }else{
-                Toast.makeText(context, "can't fetch news Feed ", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "can't fetch news Feed ", Toast.LENGTH_SHORT).show();
+                Snackbar.make(coordinatorLayout,"Can't fetch news Feed ", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+
+                listFragment.setData(getOfflineShared());
+                gridFragment.setData(getOfflineShared());
             }
-            pDialog.hide();
+        }
+
+        private void saveToShared() {
+            settings = context.getSharedPreferences(PREFS_NAME,
+                    Context.MODE_PRIVATE);
+            editor = settings.edit();
+            Gson gson = new Gson();
+            String jsonFeedsOffline = gson.toJson(Items);
+            editor.putString(OFF_ITEMS, jsonFeedsOffline);
+            editor.commit();
+        }
+
+        public ArrayList<item> getOfflineShared() {
+            SharedPreferences settings;
+            List<item> offlineItems;
+
+            settings = context.getSharedPreferences(PREFS_NAME,
+                    Context.MODE_PRIVATE);
+
+            if (settings.contains(OFF_ITEMS)) {
+                String jsonFavorites = settings.getString(OFF_ITEMS, null);
+                Gson gson = new Gson();
+                item[] favoriteItems = gson.fromJson(jsonFavorites,
+                        item[].class);
+
+                offlineItems = Arrays.asList(favoriteItems);
+                offlineItems = new ArrayList<item>(offlineItems);
+            } else{
+
+                return null;
+            }
+            return (ArrayList<item>) offlineItems;
         }
     }
 

@@ -50,25 +50,7 @@ public class GridFragment extends Fragment {
         gridView.setAdapter(gridAdapter);
         return rootView ;
     }
-    public ArrayList<item> getCart(Context context) {
-        SharedPreferences settings;
-        List<item> favorites;
 
-        settings = context.getSharedPreferences(PREFS_NAME,
-                Context.MODE_PRIVATE);
-
-        if (settings.contains(OFF_ITEMS)) {
-            String jsonFavorites = settings.getString(OFF_ITEMS, null);
-            Gson gson = new Gson();
-            item[] favoriteItems = gson.fromJson(jsonFavorites,
-                    item[].class);
-
-            favorites = Arrays.asList(favoriteItems);
-            favorites = new ArrayList<item>(favorites);
-        } else
-            return null;
-        return (ArrayList<item>) favorites;
-    }
 
     @Override
     public void onResume() {
@@ -76,7 +58,8 @@ public class GridFragment extends Fragment {
         gridAdapter.notifyDataSetChanged();
     }
     public void setData(ArrayList<item> data){
-        data_ret =data ;
+        data_ret.clear();
+        data_ret.addAll(data);
         gridAdapter.notifyDataSetChanged();
     }
 }
