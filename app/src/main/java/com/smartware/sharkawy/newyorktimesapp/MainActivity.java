@@ -272,8 +272,14 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(coordinatorLayout,"Can't fetch news Feed ", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
 
-                listFragment.setData(getOfflineShared());
-                gridFragment.setData(getOfflineShared());
+                if(getOfflineShared()!=null){
+                    listFragment.setData(getOfflineShared());
+                    gridFragment.setData(getOfflineShared());
+
+                }else{
+                    Snackbar.make(coordinatorLayout,"Can't fetch news Feed", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
             }
         }
 

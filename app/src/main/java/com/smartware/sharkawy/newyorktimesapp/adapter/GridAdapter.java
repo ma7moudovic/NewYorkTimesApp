@@ -17,9 +17,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-/**
- * Created by Mahmoud on 1/26/2016.
- */
 public class GridAdapter extends BaseAdapter {
 
     private final Context mContext;

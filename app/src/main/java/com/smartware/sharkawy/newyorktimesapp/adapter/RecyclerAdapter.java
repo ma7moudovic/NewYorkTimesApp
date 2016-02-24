@@ -74,10 +74,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public void onBindViewHolder(RecyclerAdapter.ViewHolder holder, final int position) {
 
         String pic_url = pObjects.get(position).getImage_url();
-//        holder.textView.setText(pObjects.get(position).getTitle());
 
         Picasso.with(getpContext()).load(pic_url).error(R.mipmap.loader).into(holder.imageView);
-//        holder.imageView.setImageResource(pics[position]);
         holder.titleView.setText(pObjects.get(position).getTitle());
         try {
             holder.priceView.setText(FormatDate(pObjects.get(position).getPublished_date()));
