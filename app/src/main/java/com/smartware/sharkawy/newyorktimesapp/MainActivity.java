@@ -27,7 +27,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
+import com.smartware.sharkawy.newyorktimesapp.app.AppController;
 import com.smartware.sharkawy.newyorktimesapp.model.item;
 
 import org.json.JSONArray;
@@ -62,12 +68,16 @@ public class MainActivity extends AppCompatActivity {
     ViewPagerAdapter viewPagerAdapter ;
 
     CoordinatorLayout coordinatorLayout ;
+    private static String TAG = MainActivity.class.getSimpleName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        pDialog = new ProgressDialog(this);
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -80,15 +90,19 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.sections_array, android.R.layout.simple_list_item_1);
         sp.setAdapter(adapter);
-        section_selected = sp.getSelectedItem().toString() ;
-        FetchFeeds req = new FetchFeeds(this);
-        req.execute();
+//        section_selected = sp.getSelectedItem().toString() ;
+//        FetchFeeds req = new FetchFeeds(this);
+//        req.execute();
+        makeJsonObjectRequest(sp.getSelectedItem().toString());
+
 
         sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                section_selected = sp.getSelectedItem().toString() ;
-                new FetchFeeds(MainActivity.this).execute();
+//                section_selected = sp.getSelectedItem().toString() ;
+//                new FetchFeeds(MainActivity.this).execute();
+
+                makeJsonObjectRequest(sp.getSelectedItem().toString());
             }
 
             @Override
@@ -106,9 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -159,161 +171,64 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class FetchFeeds extends AsyncTask<String, Void, List<item>> {
-        private Activity context;
+    private void makeJsonObjectRequest(String setcion) {
 
-        public FetchFeeds(Activity context) {
-            this.context = context;
-        }
-        private final String LOG_TAG = FetchFeeds.class.getSimpleName();
+        showpDialog();
+        String URL_F= "http://api.nytimes.com/svc/topstories/v1/"+setcion+".json?api-key=799cdaa2fc9e374178d3c5d20dfac79d:2:74492644";
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-//            pDialog = ProgressDialog.show(context,"","Loading..",true);
-            pDialog = new ProgressDialog(context);
-            pDialog.setMessage("Loading..");
-            pDialog.show();
-        }
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET,
+                URL_F, null, new Response.Listener<JSONObject>() {
 
-        private List<item> getMoviesDataFromJson(String jsonStr) throws JSONException {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d(TAG, response.toString());
 
-            JSONObject feedsJson = new JSONObject(jsonStr);
-            JSONArray feedsArray = feedsJson.getJSONArray("results");
+                try {
+                    // Parsing json object response
+                    JSONArray feedsArray = response.getJSONArray("results");
 
-            List<item> results = new ArrayList<>();
+                    ArrayList<item> results = new ArrayList<>();
 
-            for(int i = 0; i < feedsArray.length(); i++) {
-                JSONObject item = feedsArray.getJSONObject(i);
-                item itemModel = new item(item);
-                results.add(itemModel);
-            }
-
-            return results;
-        }
-
-        @Override
-        protected List<item> doInBackground(String... params) {
-
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-
-            String jsonStr = null;
-
-            try {
-
-                URL url = new URL("http://api.nytimes.com/svc/topstories/v1/"+section_selected+".json?api-key=799cdaa2fc9e374178d3c5d20dfac79d:2:74492644");
-
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    return null;
-                }
-                jsonStr = buffer.toString();
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
+                    for(int i = 0; i < feedsArray.length(); i++) {
+                        JSONObject item = feedsArray.getJSONObject(i);
+                        item itemModel = new item(item);
+                        results.add(itemModel);
                     }
+
+                    listFragment.setData(results);
+                    gridFragment.setData(results);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(),
+                            "Error: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
                 }
+                hidepDialog();
             }
+        }, new Response.ErrorListener() {
 
-            try {
-                return getMoviesDataFromJson(jsonStr);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-                e.printStackTrace();
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                VolleyLog.d(TAG, "Error: " + error.getMessage());
+                Toast.makeText(getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_SHORT).show();
+                // hide the progress dialog
+                hidepDialog();
             }
+        });
 
-            // This will only happen if there was an error getting or parsing the forecast.
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(List<item> newsFeed) {
-
-            if (pDialog.isShowing()) {
-                pDialog.dismiss();
-            }
-            if (newsFeed != null) {
-
-                Items = new ArrayList<>();
-                Items.addAll(newsFeed);
-
-
-                listFragment.setData(Items);
-                gridFragment.setData(Items);
-                saveToShared();
-
-            }else{
-//                Toast.makeText(context, "can't fetch news Feed ", Toast.LENGTH_SHORT).show();
-                Snackbar.make(coordinatorLayout,"Can't fetch news Feed ", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-
-                if(getOfflineShared()!=null){
-                    listFragment.setData(getOfflineShared());
-                    gridFragment.setData(getOfflineShared());
-
-                }else{
-                    Snackbar.make(coordinatorLayout,"Can't fetch news Feed", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-            }
-        }
-
-        private void saveToShared() {
-            settings = context.getSharedPreferences(PREFS_NAME,
-                    Context.MODE_PRIVATE);
-            editor = settings.edit();
-            Gson gson = new Gson();
-            String jsonFeedsOffline = gson.toJson(Items);
-            editor.putString(OFF_ITEMS, jsonFeedsOffline);
-            editor.commit();
-        }
-
-        public ArrayList<item> getOfflineShared() {
-            SharedPreferences settings;
-            List<item> offlineItems;
-
-            settings = context.getSharedPreferences(PREFS_NAME,
-                    Context.MODE_PRIVATE);
-
-            if (settings.contains(OFF_ITEMS)) {
-                String jsonFavorites = settings.getString(OFF_ITEMS, null);
-                Gson gson = new Gson();
-                item[] favoriteItems = gson.fromJson(jsonFavorites,
-                        item[].class);
-
-                offlineItems = Arrays.asList(favoriteItems);
-                offlineItems = new ArrayList<item>(offlineItems);
-            } else{
-
-                return null;
-            }
-            return (ArrayList<item>) offlineItems;
-        }
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(jsonObjReq);
     }
 
+    private void showpDialog() {
+        if (!pDialog.isShowing())
+            pDialog.show();
+    }
+
+    private void hidepDialog() {
+        if (pDialog.isShowing())
+            pDialog.dismiss();
+    }
 }
