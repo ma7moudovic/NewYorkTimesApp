@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         pDialog = new ProgressDialog(this);
+        pDialog.setMessage("Loading..");
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -90,17 +91,13 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.sections_array, android.R.layout.simple_list_item_1);
         sp.setAdapter(adapter);
-//        section_selected = sp.getSelectedItem().toString() ;
-//        FetchFeeds req = new FetchFeeds(this);
-//        req.execute();
+
         makeJsonObjectRequest(sp.getSelectedItem().toString());
 
 
         sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                section_selected = sp.getSelectedItem().toString() ;
-//                new FetchFeeds(MainActivity.this).execute();
 
                 makeJsonObjectRequest(sp.getSelectedItem().toString());
             }
@@ -123,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
 
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -198,6 +194,8 @@ public class MainActivity extends AppCompatActivity {
                     listFragment.setData(results);
                     gridFragment.setData(results);
 
+                    saveToShared(response);
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Toast.makeText(getApplicationContext(),
@@ -215,12 +213,72 @@ public class MainActivity extends AppCompatActivity {
                         error.getMessage(), Toast.LENGTH_SHORT).show();
                 // hide the progress dialog
                 hidepDialog();
+                if(getAppData()!=null){
+                    try {
+                        // Parsing json object response
+                        JSONArray feedsArray = getAppData().getJSONArray("results");
+
+                        ArrayList<item> results = new ArrayList<>();
+
+                        for(int i = 0; i < feedsArray.length(); i++) {
+                            JSONObject item = feedsArray.getJSONObject(i);
+                            item itemModel = new item(item);
+                            results.add(itemModel);
+                        }
+
+                        listFragment.setData(results);
+                        gridFragment.setData(results);
+                        Snackbar.make(coordinatorLayout, "Can't Fetch News", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(),
+                                "Error: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                        Snackbar.make(coordinatorLayout, "Can't Fetch News", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                }else{
+                    Snackbar.make(coordinatorLayout, "Can't Fetch News", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+
             }
         });
 
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(jsonObjReq);
     }
+
+    private void saveToShared(JSONObject jsonObject) {
+
+        String str = jsonObject.toString();
+        SharedPreferences sharedPref = getSharedPreferences("appData", Context.MODE_WORLD_WRITEABLE);
+        SharedPreferences.Editor prefEditor = getSharedPreferences( "appData", Context.MODE_WORLD_WRITEABLE ).edit();
+        prefEditor.clear();
+        prefEditor.commit();
+        prefEditor.putString("json", str);
+        prefEditor.commit();
+
+    }
+
+    private JSONObject getAppData(){
+        SharedPreferences sharedPref = getSharedPreferences("appData", Context.MODE_WORLD_WRITEABLE);
+        SharedPreferences.Editor prefEditor = getSharedPreferences( "appData", Context.MODE_WORLD_WRITEABLE ).edit();
+        JSONObject obj =null;
+        if(sharedPref.contains("json")){
+
+            String JsonString = sharedPref.getString("json", null);
+            try {
+                obj = new JSONObject(JsonString) ;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return obj ;
+    }
+
 
     private void showpDialog() {
         if (!pDialog.isShowing())
@@ -231,4 +289,6 @@ public class MainActivity extends AppCompatActivity {
         if (pDialog.isShowing())
             pDialog.dismiss();
     }
+
+
 }

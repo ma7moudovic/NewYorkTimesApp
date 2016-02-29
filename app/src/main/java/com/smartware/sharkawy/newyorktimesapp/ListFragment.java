@@ -28,10 +28,6 @@ import java.util.List;
  */
 public class ListFragment extends Fragment {
 
-    public static final String PREFS_NAME = "PRODUCT_APP";
-    public static final String OFF_ITEMS = "Offline_Items";
-    SharedPreferences settings;
-    SharedPreferences.Editor editor;
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
@@ -49,35 +45,15 @@ public class ListFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView =  inflater.inflate(R.layout.fragment_list, container, false);
         data_ret= new ArrayList<>();
+
         recyclerView = (RecyclerView) rootView.findViewById(R.id.main_recycler_view);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(layoutManager);
-//        adapter = new RecyclerAdapter(getActivity(),getCart(getActivity()));
-        adapter = new RecyclerAdapter(getActivity(),data_ret);
+        adapter = new RecyclerAdapter(getActivity(),data_ret,0);
 
         recyclerView.setAdapter(adapter);
         return rootView ;
-    }
-
-    public ArrayList<item> getCart(Context context) {
-        SharedPreferences settings;
-        List<item> favorites;
-
-        settings = context.getSharedPreferences(PREFS_NAME,
-                Context.MODE_PRIVATE);
-
-        if (settings.contains(OFF_ITEMS)) {
-            String jsonFavorites = settings.getString(OFF_ITEMS, null);
-            Gson gson = new Gson();
-            item[] favoriteItems = gson.fromJson(jsonFavorites,
-                    item[].class);
-
-            favorites = Arrays.asList(favoriteItems);
-            favorites = new ArrayList<item>(favorites);
-        } else
-            return null;
-        return (ArrayList<item>) favorites;
     }
 
     public void setData(ArrayList<item> data){

@@ -29,10 +29,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     private final item pLock = new item();
     private List<item> pObjects;
+    int FLAG ;
 
-    public RecyclerAdapter(Context pContext, List<item> pObjects) {
+    public RecyclerAdapter(Context pContext, List<item> pObjects, int FLAG) {
         this.pContext = pContext;
         this.pObjects = pObjects;
+        this.FLAG = FLAG ;
     }
 
     public Context getpContext() {
@@ -60,10 +62,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     @Override
     public RecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
-        // create a new view
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item, parent, false);
+        View view ;
+        if(FLAG==0){
+             view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item, parent, false);
+        }else {
+             view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.grid_item, parent, false);
+        }
 
         ViewHolder viewHolder = new ViewHolder(view);
         return viewHolder;

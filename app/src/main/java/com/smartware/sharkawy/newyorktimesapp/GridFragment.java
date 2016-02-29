@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +15,7 @@ import android.widget.GridView;
 
 import com.google.gson.Gson;
 import com.smartware.sharkawy.newyorktimesapp.adapter.GridAdapter;
+import com.smartware.sharkawy.newyorktimesapp.adapter.RecyclerAdapter;
 import com.smartware.sharkawy.newyorktimesapp.model.item;
 
 import java.util.ArrayList;
@@ -24,15 +28,12 @@ import java.util.List;
  */
 public class GridFragment extends Fragment {
 
-    public static final String PREFS_NAME = "PRODUCT_APP";
-    public static final String OFF_ITEMS = "Offline_Items";
-    SharedPreferences settings;
-    SharedPreferences.Editor editor;
-
     ArrayList<item> data_ret ;
 
-    GridView gridView ;
-    GridAdapter gridAdapter ;
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter adapter;
+    private RecyclerView.LayoutManager layoutManager;
+
     public GridFragment() {
         // Required empty public constructor
     }
@@ -45,9 +46,14 @@ public class GridFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_grid, container, false);
         data_ret = new ArrayList<>();
 
-        gridView = (GridView) rootView.findViewById(R.id.gridview_);
-        gridAdapter = new GridAdapter(getActivity(),data_ret);
-        gridView.setAdapter(gridAdapter);
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.main_recycler_view_g);
+        recyclerView.setHasFixedSize(true);
+        layoutManager = new GridLayoutManager(getActivity(),2);
+        recyclerView.setLayoutManager(layoutManager);
+        adapter = new RecyclerAdapter(getActivity(),data_ret,1);
+
+        recyclerView.setAdapter(adapter);
+
         return rootView ;
     }
 
@@ -55,11 +61,11 @@ public class GridFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        gridAdapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
     }
     public void setData(ArrayList<item> data){
         data_ret.clear();
         data_ret.addAll(data);
-        gridAdapter.notifyDataSetChanged();
+        adapter.notifyDataSetChanged();
     }
 }
